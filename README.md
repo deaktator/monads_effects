@@ -15,7 +15,7 @@ resource.
 
 The project gives a very brief, inadequate definition of monads.  Then an
 anemic `Opt` [ADT](https://en.wikipedia.org/wiki/Algebraic_data_type) (similar
-to Scala's `Option`) is defined. Next a monad instance for `Opt` is derived.  
+to Scala's `Option`) is defined. Next a monad instance for `Opt` is derived.
 Then it is used in some examples involving *for comprehensions*.  Next a monad
 for `Either` is created and used in some examples.  Finally, some of the code
 is refactored to derived the essence of the computations.  This allows the
