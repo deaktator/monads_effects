@@ -1,3 +1,6 @@
+// Do `sbt console` in a shell
+// in console, do `import monads._`
+
 import scala.language.higherKinds
 
 /**
