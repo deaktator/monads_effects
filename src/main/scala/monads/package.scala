@@ -341,8 +341,8 @@ package object monads {
   // the examples above.
 
   def reciprocalReciprocal[M[_], E](value: M[Int])(implicit
-                            me: MonadError[M, E],
-                            ie: InjectError[String, E]): M[Double] = {
+                                    me: MonadError[M, E],
+                                    ie: InjectError[String, E]): M[Double] = {
     me.map(reciprocal1(value))(r => 1 / r)
   }
 
@@ -357,7 +357,7 @@ package object monads {
     // basic Either type.  We must provide the type ascription making this
     // Right an Either because the MonadError is defined on Either, not Right
     // and Left.
-    val value: Either[String, Int] = Right(1)  // Good value.
+    val value: Either[String, Int] = Right(5)  // Good value.
 
     // We import the either instances here but could have done it above.
     // Since we are going to show examples with the Option MonadError later,
@@ -383,7 +383,7 @@ package object monads {
 
   def exReciprocal7: Option[Double] = {
     import cats.instances.option._
-    val value = Option(1)                       // Good value.
+    val value = Option(5)                       // Good value.
     reciprocalReciprocal(value)
   }
 
