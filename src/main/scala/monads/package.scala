@@ -28,6 +28,8 @@ import scala.language.higherKinds
   */
 package object monads {
 
+  private val BAD_INPUT = "bad input"
+
   // We use Options to model the computational effect of failure and short
   // circuiting in programs.  This is convenient because we don't have to
   // program, necessarily explicitly, in terms of the effect but can use the
@@ -158,44 +160,8 @@ package object monads {
   // String.  This aids the type inferencer in the compiler.
   type StringErrOr[+A] = Either[String, A]
 
-  // Let's look at a new example.  Say we want to compute the reciprocal of
-  // an integer and turn it into a double.  This is possible, but we want to
-  // produce an error for the reciprocal of 0 because of division be zero.
 
-  def reciprocal(value: Int): StringErrOr[Double] = value match {
-    case 0 => Left("Can't determine reciprocal of 0.")
-    case _ => Right(1d / value)
-  }
-
-  // Compute the reciprocal and then the reciprocal of the reciprocal
-  // valid input value, computation succeeds
-  def exReciprocal1: StringErrOr[Double] =
-    for {
-      value <- Right(5)             : StringErrOr[Int]
-      rec   <- reciprocal(value)
-      id     = 1d / rec
-    } yield id
-
-  // Compute the reciprocal and then the reciprocal of the reciprocal
-  // invalid input value, computation doesn't happen
-  def exReciprocal2: StringErrOr[Double] =
-    for {
-      value <- Left("bad input")    : StringErrOr[Int]
-      rec   <- reciprocal(value)
-      id     = 1d / rec
-    } yield id
-
-  // Compute the reciprocal and then the reciprocal of the reciprocal
-  // valid input value, computation fails mid way
-  def exReciprocal3: StringErrOr[Double] =
-    for {
-      value <- Right(0)             : StringErrOr[Int]
-      rec   <- reciprocal(value)
-      id     = 1d / rec
-    } yield id
-
-
-  // And again, let's come back to added two numbers like with Opt instances.
+  // Let's come back to added two numbers like with Opt instances.
 
   def exAdd4: StringErrOr[Double] =
     for {
@@ -213,7 +179,7 @@ package object monads {
   def exAdd6: StringErrOr[Double] =
     for {
       a <- Right(1)               : StringErrOr[Int]
-      b <- Left("err")            : StringErrOr[Double]
+      b <- Left(BAD_INPUT)        : StringErrOr[Double]
     } yield a + b
 
   // Now, Opts and StringError follow the exact same pattern for adding two
@@ -238,7 +204,207 @@ package object monads {
   def exAdd8: StringErrOr[Double] =
     addTwo[StringErrOr](Right(1), Left("No value present"))
 
+
+  // Let's look at a new example.  Say we want to compute the reciprocal of
+  // an integer and turn it into a double.  This is possible, but we want to
+  // produce an error for the reciprocal of 0 because of division be zero.
+
+  def reciprocal(value: Int): StringErrOr[Double] = value match {
+    case 0 => Left("Can't determine reciprocal of 0.")
+    case _ => Right(1d / value)
+  }
+
+  // Compute the reciprocal and then the reciprocal of the reciprocal
+  // valid input value, computation succeeds
+  def exReciprocal1: StringErrOr[Double] =
+    for {
+      value <- Right(5)             : StringErrOr[Int]
+      rec   <- reciprocal(value)
+      id     = 1d / rec
+    } yield id
+
+  // Compute the reciprocal and then the reciprocal of the reciprocal
+  // invalid input value, computation doesn't happen
+  def exReciprocal2: StringErrOr[Double] =
+    for {
+      value <- Left(BAD_INPUT)      : StringErrOr[Int]
+      rec   <- reciprocal(value)
+      id     = 1d / rec
+    } yield id
+
+  // Compute the reciprocal and then the reciprocal of the reciprocal
+  // valid input value, computation fails mid way
+  def exReciprocal3: StringErrOr[Double] =
+    for {
+      value <- Right(0)             : StringErrOr[Int]
+      rec   <- reciprocal(value)
+      id     = 1d / rec
+    } yield id
+
+
+  // Notice the problem that reciprocal returns a specific type of monadic
+  // value: StringErrOr[Double].  What if we want to generalize this like
+  // with the addTwo function divided above.  How could that be done?
+  //
+  // We want something like a monad that can also encode errors.
+  //
+  // It would be nice if we could construct and emit an error generically.
+  // We CAN do this and libraries have support for this.  For instance, the
+  // typelevel cats library (https://typelevel.org/cats/) has support for this
+  // in a type class called MonadError.  Let's use this.  We'll create an
+  // extra type class called InjectError.  This is because the MonadError type
+  // class has the following structure:
+  //
+  //   MonadError[F[_], E]
+  //
+  // So it has the typical type constructor F like Monad does, but it also has
+  // an error type, E.  But not all MonadErrors have the same E type.  So, we
+  // create the InjectError type class that can convert from a known error type
+  // EI to one that is consumable by MonadError for the type of Monad we want.
+  // This looks like the following:
+
+  trait InjectError[EI, E] {
+    def convertError(err: EI): E
+  }
+
+  // MonadError[Either[E, ?], E] is parameteric in the error type, so
+  // EitherInjectError takes an E as a type parameter.  The convertError
+  // function is just the identity function.
+
+  class EitherInjectError[E] extends InjectError[E, E] {
+    def convertError(e: E): E = e
+  }
+
+  // The MonadError for Option is MonadError[Option, Unit], meaning it only
+  // accepts errors of type Unit.  This makes since because Option doesn't
+  // maintain any information about errors (hence Option[A] is isomorphic to
+  // Either[Unit, A]). Therefore, while OptionInjectError takes a type
+  // parameter, E, the convertError function ignores its input and always
+  // returns Unit.
+
+  class OptionInjectError[E] extends InjectError[E, Unit] {
+    def convertError(e: E): Unit = ()
+  }
+
+  // Some functions to implicitly create these InjectError instances.
+
+  implicit def eitherInjectError[E]: InjectError[E, E] = new EitherInjectError[E]
+  implicit def optionInjectError[E]: InjectError[E, Unit] = new OptionInjectError[E]
+
+  // Here we're going to start using the typelevel cats definitions for
+  // MonadError and ApplicativeError.  Note that above we said an Applicative
+  // can be derived from a Monad and that a Monad is strictly more powerful
+  // than an Applicative.  The same is true for MonadErrors and
+  // ApplicativeErrors.
+
+  import cats.{ApplicativeError, MonadError}
+
+  // Here we take an Either and an implicit ApplicativeError and InjectError
+  // And turn the Either into an M for which the ApplicativeError is defined.
+  // This is pretty easy.  If the value, e, is a Right, we assume it is a "good"
+  // value and convert it to the ApplicativeError M using the pure method.  If
+  // the value is a Left, we assume it is an error and raise the error into the
+  // ApplicativeError using raiseError.  Remember that different
+  // ApplicativeErrors have different error types.  This is why the InjectError
+  // type class was created.  If an InjectError is in scope, it can convert the
+  // Left(lft) into something the ApplicativeError's raiseError method can
+  // consume.
+
+  def eitherTo[M[_], L, R, E](e: Either[L, R])(implicit
+                              me: ApplicativeError[M, E],
+                              ie: InjectError[L, E]): M[R] = {
+    e match {
+      case Right(rt) => me.pure(rt)
+      case Left(lft) => me.raiseError(ie.convertError(lft))
+    }
+  }
+
+  // Now, we can rewrite the reciprocal function to be generic such that it
+  // can take a value inside any type constructor, M, as long as the implicit
+  // MonadError and InjectError are found for that type M.  This allows us to
+  // rewrite this function generically and make use of the original reciprocal
+  // function defined above.
+  //
+  // Note that we need a MonadError rather than just an ApplicativeError because
+  // the flatMap in Monad is needed and the raiseError in ApplicativeError is
+  // needed downstream in the eitherTo method.
+  def reciprocal1[M[_], E](value: M[Int])(implicit
+                           me: MonadError[M, E],
+                           ie: InjectError[String, E]): M[Double] = {
+
+    // Note that since MonadError is an ApplicativeError it gets passed
+    // implicitly.  Use the flatMap from MonadError.
+    me.flatMap(value){ v => eitherTo(reciprocal(v)) }
+  }
+
+  // We do the map at the end to do the reciprocal of the reciprocal like in
+  // the examples above.
+
+  def reciprocalReciprocal[M[_], E](value: M[Int])(implicit
+                            me: MonadError[M, E],
+                            ie: InjectError[String, E]): M[Double] = {
+    me.map(reciprocal1(value))(r => 1 / r)
+  }
+
+
+  // So now we can test these things generic implementations with some different
+  // monads: the Option monad and the right biased Either monad.
+
+  // Let's look at calculating reciprocals of Either values.
+
+  def exReciprocal4: Either[String, Double] = {
+    // Since we are using cats for the MonadError, we can specify just the
+    // basic Either type.  We must provide the type ascription making this
+    // Right an Either because the MonadError is defined on Either, not Right
+    // and Left.
+    val value: Either[String, Int] = Right(1)  // Good value.
+
+    // We import the either instances here but could have done it above.
+    // Since we are going to show examples with the Option MonadError later,
+    // we want to show these in isolation.
+    import cats.instances.either._
+    reciprocalReciprocal(value)
+  }
+
+  def exReciprocal5: Either[String, Double] = {
+    import cats.instances.either._
+    val value: Either[String, Int] = Right(0)  // Good value. No reciprocal.
+    reciprocalReciprocal(value)
+  }
+
+  def exReciprocal6: Either[String, Double] = {
+    import cats.instances.either._
+    val value: Either[String, Int] = Left(BAD_INPUT)  // Bad value.
+    reciprocalReciprocal(value)
+  }
+
+  // Similarly, we can calculate reciprocals of Option values without changing
+  // our reciprocal code.
+
+  def exReciprocal7: Option[Double] = {
+    import cats.instances.option._
+    val value = Option(1)                       // Good value.
+    reciprocalReciprocal(value)
+  }
+
+  def exReciprocal8: Option[Double] = {
+    import cats.instances.option._
+    val value = Option(0)                       // Good value. No reciprocal.
+    reciprocalReciprocal(value)
+  }
+
+  def exReciprocal9: Option[Double] = {
+    import cats.instances.option._
+    val value = Option.empty[Int]               // Bad value.
+    reciprocalReciprocal(value)
+  }
+
+  // So we've shown some ways that generic programming can help to capture
+  // different effects like failures and errors.  We can modify our programs
+  // to be more generic, thereby allowing us switch easily between some of the
+  // effects we want to capture.
+
   // There are way more types of effects than modelling failure.  We can
   // model state, logging, failure, etc.  We can even stack these effects
-  // using some more advanced techniques.
+  // using some more advanced techniques like Free, Eff and Monad Transformers.
 }

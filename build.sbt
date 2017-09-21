@@ -20,7 +20,10 @@ scalacOptions ++= Seq(
   "-unchecked",
   "-deprecation",
   "-feature",
-  "-Xverify"
+  "-Xverify",
+  "-Ypartial-unification"
 )
 
 addCompilerPlugin("org.spire-math" %% "kind-projector" % kind_projector_version)
+
+libraryDependencies += "org.typelevel" %% "cats-core" % "0.9.0"
