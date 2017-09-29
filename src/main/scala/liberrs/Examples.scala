@@ -86,11 +86,30 @@ object Examples {
   } yield someFunction(p, d, o)
 
   // --------------------------------------------------------------------------
-  //  Lifting a raw value to ErrOr.
+  //  Lifting a raw value to ErrOr.  This shouldn't really be necessary as
+  //  the value could be just bound to a variable but if you want to do it,
+  //  you could.  This should really only be necessary if you wanted to put
+  //  it as the first element of the for comprehension.
   // --------------------------------------------------------------------------
   def ex7: ErrOr[Double] = for {
+    p <- 1.liftToErrOr        // p = 1 doesn't compile
+    d <- ds.asErrOr
+    c <- os.asErrOr
+  } yield someFunction(p, d, c)
+
+  // --------------------------------------------------------------------------
+  //  Using "raw" values not inside an ErrOr.  Fine after the first line of
+  //  the for comprehension.
+  // --------------------------------------------------------------------------
+  def ex8: ErrOr[Double] = for {
+    p <- ps.asErrOr
+    d  = 1f
+    c <- os.asErrOr
+  } yield someFunction(p, d, c)
+
+  def ex9: ErrOr[Double] = for {
     p <- ps.asErrOr
     d <- ds.asErrOr
-    c <- 1d.liftToErrOr
+    c  = 1d
   } yield someFunction(p, d, c)
 }
