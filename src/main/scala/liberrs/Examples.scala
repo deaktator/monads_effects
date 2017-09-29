@@ -92,10 +92,10 @@ object Examples {
   //  it as the first element of the for comprehension.
   // --------------------------------------------------------------------------
   def ex7: ErrOr[Double] = for {
-    p <- 1.liftToErrOr        // p = 1 doesn't compile
+    c <- 1.liftToErrOr        // p = 1 doesn't compile
     d <- ds.asErrOr
-    c <- os.asErrOr
-  } yield someFunction(p, d, c)
+    o <- os.asErrOr
+  } yield someFunction(c, d, o)
 
   // --------------------------------------------------------------------------
   //  Using "raw" values not inside an ErrOr.  Fine after the first line of
@@ -103,9 +103,9 @@ object Examples {
   // --------------------------------------------------------------------------
   def ex8: ErrOr[Double] = for {
     p <- ps.asErrOr
-    d  = 1f
-    c <- os.asErrOr
-  } yield someFunction(p, d, c)
+    c  = 1f
+    o <- os.asErrOr
+  } yield someFunction(p, c, o)
 
   def ex9: ErrOr[Double] = for {
     p <- ps.asErrOr
