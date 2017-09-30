@@ -1,8 +1,18 @@
 package liberrs1
 
+// To run some of the examples:
+//
+//   import liberrs1.Examples._
+//   run(ex1)
+//   run(ex2)
+//   ...
+
+
+// The only import needed use the syntax is liberrs1.conv.Syntax._
+// The internal base error type should also be included.
+
 import liberrs1.adt.Err
 import liberrs1.conv.Syntax._
-import liberrs1.conv.ValueConverter
 import liberrs1.lib.{DecodingFailure, ParsingFailure}
 
 import scala.util.{Failure, Success, Try}
@@ -19,7 +29,7 @@ object Examples {
   private[this] val df: Either[DecodingFailure, Float] = Left(new DecodingFailure)
 
   private[this] val ts: Try[Double] = Success(1d)
-  private[this] val tf: Try[Double] = Failure(new Exception)
+  private[this] val tf: Try[Double] = Failure(new Exception("Some random error"))
 
   private[this] val os = Option(1d)
   private[this] val of = Option.empty[Double]
@@ -39,6 +49,35 @@ object Examples {
   import cats.syntax.either.catsSyntaxEither
 
 
+  // ------------------------------------------------------------------------
+  //  Error handling can be decoupled from the rest of processing logic and
+  //  side effects can be handled in greater isolation.
+  // ------------------------------------------------------------------------
+
+  // Error handling can easily be decomposed.
+
+  private[this] def handleParsingFailure(p: ParsingFailure): Unit =
+    println("A parsing failure occurred")
+  private[this] def handleDecodingFailure(p: DecodingFailure): Unit =
+    println("A decoding failure occurred")
+  private[this] def handleUnspecifiedError(): Unit =
+    println("Something went wrong")
+  private[this] def handleThrown(t: Throwable): Unit =
+    println(s"Something was thrown: '${t.getMessage}'.")
+  private[this] def handleFailure(err: Err): Unit = {
+    import adt._
+    err match {
+      case UnspecifiedError        => handleUnspecifiedError()
+      case CirceDecodingFailure(f) => handleDecodingFailure(f)
+      case CirceParsingFailure(f)  => handleParsingFailure(f)
+      case WrappedThrowable(t)     => handleThrown(t)
+    }
+  }
+
+  // Mimics main.
+  def run(prog: => Either[Err, Double]): Unit =
+    prog.fold(handleFailure, success => println(s"succeeded with value: $success"))
+
   // All examples output type: Either[Err, Double].
 
   // --------------------------------------------------------------------------
@@ -54,38 +93,43 @@ object Examples {
   //  Success case, written generically for any error type.
   // --------------------------------------------------------------------------
 
-  /**
-    * ex1 can be rewritten generically by making a simple modification to the
-    * function body.  The concrete error type is replaced with a type parameter.
-    * Then the function needs to be parametrized by this error type.  Finally,
-    * ValueConverters for the types encountered in the for comprehension, need to
-    * be included as implicit function parameters.  These are `t`, `d`, `p`.
-    *
-    * '''NOTE''': This function is included only so `ex2` can be run without
-    * needing additional imports aside from `import Example._`.
-    *
-    * @param t a value converter for `Try`
-    * @param p a value converter for `Either` where the error type on the left is
-    *          `ParsingFailure`
-    * @param d a value converter for `Either` where the error type on the left is
-    *          `DecodingFailure`
-    * @tparam I the internal error type.
-    * @return An `Either` with the desired internal error type on the left.
-    */
-  private[this] def ex2Helper[I](implicit
-      t: ValueConverter[Try, I],
-      p: ValueConverter[Either[ParsingFailure, ?], I],
-      d: ValueConverter[Either[DecodingFailure, ?], I]): Either[I, Double] = {
 
-    for {
-      p <- ps.errorTo[I]
-      d <- ds.errorTo[I]
-      t <- ts.errorTo[I]
-    } yield someFunction(p, d, t)
+  def ex2 = {
+    import liberrs1.conv.ValueConverter
+
+    /**
+      * ex1 can be rewritten generically by making a simple modification to the
+      * function body.  The concrete error type is replaced with a type parameter.
+      * Then the function needs to be parametrized by this error type.  Finally,
+      * ValueConverters for the types encountered in the for comprehension, need to
+      * be included as implicit function parameters.  These are `t`, `d`, `p`.
+      *
+      * '''NOTE''': This function is included only so `ex2` can be run without
+      * needing additional imports aside from `import Example._`.
+      *
+      * @param t a value converter for `Try`
+      * @param p a value converter for `Either` where the error type on the left is
+      *          `ParsingFailure`
+      * @param d a value converter for `Either` where the error type on the left is
+      *          `DecodingFailure`
+      * @tparam I the internal error type.
+      * @return An `Either` with the desired internal error type on the left.
+      */
+    def ex2Helper[I](implicit
+        t: ValueConverter[Try, I],
+        p: ValueConverter[Either[ParsingFailure, ?], I],
+        d: ValueConverter[Either[DecodingFailure, ?], I]): Either[I, Double] = {
+
+      for {
+        p <- ps.errorTo[I]
+        d <- ds.errorTo[I]
+        t <- ts.errorTo[I]
+      } yield someFunction(p, d, t)
+    }
+
+    // Calling just requires supplying the type.
+    ex2Helper[Err]
   }
-
-
-  def ex2 = ex2Helper[Err]
 
 
   // --------------------------------------------------------------------------
