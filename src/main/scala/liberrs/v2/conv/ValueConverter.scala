@@ -1,4 +1,4 @@
-package liberrs1.conv
+package liberrs.v2.conv
 
 import scala.language.higherKinds
 import scala.util.{Failure, Success, Try}

@@ -1,7 +1,7 @@
-package liberrs.conv.option
+package liberrs.v1.conv.option
 
-import liberrs.adt.{Err, ErrOr, UnspecifiedError}
-import liberrs.conv.ValueConverter
+import liberrs.v1.adt.{Err, ErrOr, UnspecifiedError}
+import liberrs.v1.conv.ValueConverter
 
 // Value converter for Option values
 private[conv] object OptionValueConverter extends ValueConverter[Option] {

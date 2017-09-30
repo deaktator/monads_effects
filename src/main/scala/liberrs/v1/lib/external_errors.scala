@@ -1,4 +1,4 @@
-package liberrs1.lib
+package liberrs.v1.lib
 
 // Pretend like these are errors that came from another library, e.g., the Circe library.
 

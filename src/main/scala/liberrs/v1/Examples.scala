@@ -1,10 +1,10 @@
-package liberrs
+package liberrs.v1
 
-import liberrs.adt.ErrOr
-import liberrs.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v1.adt.ErrOr
+import liberrs.v1.conv.Syntax._
+import liberrs.v1.lib.{DecodingFailure, ParsingFailure}
 
 import scala.util.{Failure, Success, Try}
-import liberrs.conv.Syntax._
 
 /**
   * Created by deak on 9/28/17.

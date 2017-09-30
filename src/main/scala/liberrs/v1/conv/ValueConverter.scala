@@ -1,9 +1,9 @@
-package liberrs.conv
+package liberrs.v1.conv
 
-import liberrs.adt.{ErrOr, ToErr}
-import liberrs.conv.either.EitherValueConverter
-import liberrs.conv.option.OptionValueConverter
-import liberrs.conv.try_.TryValueConverter
+import liberrs.v1.adt.{ErrOr, ToErr}
+import liberrs.v1.conv.either.EitherValueConverter
+import liberrs.v1.conv.option.OptionValueConverter
+import liberrs.v1.conv.try_.TryValueConverter
 
 import scala.language.higherKinds
 import scala.util.Try

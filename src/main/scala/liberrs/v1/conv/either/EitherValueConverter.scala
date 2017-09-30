@@ -1,7 +1,7 @@
-package liberrs.conv.either
+package liberrs.v1.conv.either
 
-import liberrs.adt.{ErrOr, ToErr}
-import liberrs.conv.ValueConverter
+import liberrs.v1.adt.{ErrOr, ToErr}
+import liberrs.v1.conv.ValueConverter
 
 // Value converter for Either values with a varying error type.
 // To get one of these, a converter a specific for error type is needed.

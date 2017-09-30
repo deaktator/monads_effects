@@ -1,4 +1,4 @@
-package liberrs1.conv
+package liberrs.v2.conv
 
 // Error converters from external errors to errors internal the Error ADT.
 trait ErrorConverter[E, I] {

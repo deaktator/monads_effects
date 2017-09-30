@@ -1,6 +1,6 @@
-package liberrs.adt
+package liberrs.v1.adt
 
-import liberrs.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v1.lib.{DecodingFailure, ParsingFailure}
 
 // Error converters from external errors to errors in the Error ADT.
 // This will be useful in the RQErrorOrConverter for Eithers.

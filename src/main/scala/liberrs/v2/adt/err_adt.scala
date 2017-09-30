@@ -1,7 +1,7 @@
-package liberrs1.adt
+package liberrs.v2.adt
 
-import liberrs1.conv.ErrorConverter
-import liberrs1.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v2.conv.ErrorConverter
+import liberrs.v2.lib.{DecodingFailure, ParsingFailure}
 
 sealed trait Err
 

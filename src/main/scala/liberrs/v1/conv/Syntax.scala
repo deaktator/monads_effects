@@ -1,6 +1,6 @@
-package liberrs.conv
+package liberrs.v1.conv
 
-import liberrs.adt.ErrOr
+import liberrs.v1.adt.ErrOr
 
 import scala.language.higherKinds
 

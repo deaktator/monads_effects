@@ -1,7 +1,7 @@
-package liberrs.conv.try_
+package liberrs.v1.conv.try_
 
-import liberrs.adt.{ErrOr, WrappedThrowable}
-import liberrs.conv.ValueConverter
+import liberrs.v1.adt.{ErrOr, WrappedThrowable}
+import liberrs.v1.conv.ValueConverter
 
 import scala.util.{Failure, Success, Try}
 

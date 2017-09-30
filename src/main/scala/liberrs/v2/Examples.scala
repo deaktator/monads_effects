@@ -1,19 +1,8 @@
-package liberrs1
+package liberrs.v2
 
-// To run some of the examples:
-//
-//   import liberrs1.Examples._
-//   run(ex1)
-//   run(ex2)
-//   ...
-
-
-// The only import needed use the syntax is liberrs1.conv.Syntax._
-// The internal base error type should also be included.
-
-import liberrs1.adt.Err
-import liberrs1.conv.Syntax._
-import liberrs1.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v2.adt.Err
+import liberrs.v2.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v2.conv.Syntax._
 
 import scala.util.{Failure, Success, Try}
 
@@ -95,7 +84,8 @@ object Examples {
 
 
   def ex2 = {
-    import liberrs1.conv.ValueConverter
+
+    import liberrs.v2.conv.ValueConverter
 
     /**
       * ex1 can be rewritten generically by making a simple modification to the

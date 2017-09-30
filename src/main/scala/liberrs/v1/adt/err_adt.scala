@@ -1,6 +1,6 @@
-package liberrs.adt
+package liberrs.v1.adt
 
-import liberrs.lib.{DecodingFailure, ParsingFailure}
+import liberrs.v1.lib.{DecodingFailure, ParsingFailure}
 
 sealed trait Err
 case object UnspecifiedError extends Err
