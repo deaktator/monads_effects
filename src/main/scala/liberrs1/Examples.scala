@@ -28,7 +28,8 @@ object Examples {
 
 
   // Used attach the map / flatMap syntax (for the right side of the Either) for
-  // use in the for comprehension.  This could easily be written ourselves as:
+  // use in the for comprehension.  This could easily be written ourselves.  But
+  // why reinvent the wheel?
   //
   //   implicit class EitherSyntax[L, R](val e: Either[L, R]) extends AnyVal {
   //     def map[A](f: R => A): Either[L, A] = e.right.map(f)
@@ -82,6 +83,7 @@ object Examples {
       t <- ts.errorTo[I]
     } yield someFunction(p, d, t)
   }
+
 
   def ex2 = ex2Helper[Err]
 
