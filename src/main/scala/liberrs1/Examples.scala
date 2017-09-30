@@ -74,13 +74,14 @@ object Examples {
   private[this] def ex2Helper[I](implicit
       t: ValueConverter[Try, I],
       p: ValueConverter[Either[ParsingFailure, ?], I],
-      d: ValueConverter[Either[DecodingFailure, ?], I]): Either[I, Double] =
+      d: ValueConverter[Either[DecodingFailure, ?], I]): Either[I, Double] = {
 
     for {
       p <- ps.errorTo[I]
       d <- ds.errorTo[I]
       t <- ts.errorTo[I]
     } yield someFunction(p, d, t)
+  }
 
   def ex2 = ex2Helper[Err]
 
